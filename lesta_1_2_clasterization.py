@@ -3,6 +3,7 @@ from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 import sqlite3
+import os
 
 # Подключение к базе данных
 conn = sqlite3.connect('Dataset.db')
@@ -46,6 +47,7 @@ kmeans.fit(data_scaled)
 # Добавление меток кластеров в исходные данные
 df['cluster_label'] = kmeans.labels_
 
+#TODO оценить необходимость визуализации результатов
 # Визуализация результатов
 plt.scatter(df['ships_killed'], df['damage'], c=df['cluster_label'])
 plt.xlabel('Ships Killed')
@@ -63,4 +65,5 @@ interpretation_data.insert(0, 'Cluster Label', cluster_labels)
 print(interpretation_data)
 
 # Сохранение DataFrame в файл CSV
-interpretation_data.to_csv('interpretation_results.csv', index=False)
+if not os.path.exists('interpretation_results.csv'):
+    interpretation_data.to_csv('interpretation_results.csv', index=False)
