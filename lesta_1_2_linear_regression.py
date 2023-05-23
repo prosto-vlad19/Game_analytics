@@ -17,7 +17,7 @@ data = cursor.fetchall()
 # Создаем DataFrame из полученных данных
 columns = ['ships_killed', 'planes_killed', 'damage', 'received_damage', 'is_alive', 'credits', 'exp']
 df = pd.DataFrame(data, columns=columns)
-print(df)
+#print(df)
 
 # Select the columns for normalization
 columns_to_normalize = ['ships_killed', 'planes_killed', 'damage', 'received_damage', 'credits', 'exp']
@@ -37,7 +37,7 @@ scaler = RobustScaler()
 df[columns_to_normalize] = scaler.fit_transform(df[columns_to_normalize])
 
 # Print the normalized DataFrame
-print(df)
+#print(df)
 
 # Разделяем данные на независимые переменные (X) и зависимую переменную (y)
 X = df.drop('ships_killed', axis=1)
@@ -68,7 +68,7 @@ data = cursor.fetchall()
 # Создаем DataFrame из полученных данных
 columns = ['ships_killed', 'planes_killed', 'damage', 'received_damage', 'is_alive', 'credits', 'exp']
 df = pd.DataFrame(data, columns=columns)
-print(df)
+#print(df)
 
 # Select the columns for normalization
 columns_to_normalize = ['ships_killed', 'planes_killed', 'damage', 'received_damage', 'credits', 'exp']
@@ -80,7 +80,7 @@ scaler = RobustScaler()
 df[columns_to_normalize] = scaler.fit_transform(df[columns_to_normalize])
 
 # Print the standardized DataFrame
-print(df)
+#print(df)
 
 # Разделяем данные на независимые переменные (X) и зависимые переменные (y)
 X = df.drop(['credits', 'exp'], axis=1)
@@ -92,7 +92,7 @@ regression.fit(X, y)
 
 # Выводим важность каждой независимой переменной
 importance = regression.coef_
-print(importance)
+#print(importance)
 
 # Построение графика
 plt.figure(figsize=(10, 6))
