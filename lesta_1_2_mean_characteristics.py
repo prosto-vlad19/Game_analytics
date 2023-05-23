@@ -35,6 +35,7 @@ plt.ylabel('Average Ships Killed')
 plt.title('Average Ships Killed by Item Level')
 plt.show()
 
+# максимальные среднее количество уничтоженных кораблей по уровню и названию корабля
 query_max_mean_ships_killed_by_lvl_and_name = "SELECT t.item_level, t.item_name, t.avg_ships_killed \
 FROM ( \
     SELECT item_level, item_name, AVG(ships_killed) as avg_ships_killed \
@@ -89,6 +90,7 @@ plt.tight_layout()
 # Отображение графика
 plt.show()
 
+#максимальные среднее количество уничтоженных кораблей по классу и названию корабля
 query_max_mean_ships_killed_by_class_and_name = "SELECT t.item_class, t.item_name, t.avg_ships_killed \
 FROM ( \
     SELECT item_class, item_name, AVG(ships_killed) as avg_ships_killed \
