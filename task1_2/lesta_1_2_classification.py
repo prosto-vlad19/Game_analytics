@@ -11,7 +11,7 @@ import os
 import joblib
 
 # Подключение к базе данных
-conn = sqlite3.connect('Dataset.db')
+conn = sqlite3.connect('../data/Dataset.db')
 cursor = conn.cursor()
 
 query = "SELECT vehicle_type_id,AVG(ships_killed),AVG(planes_killed),AVG(damage),\
@@ -30,6 +30,7 @@ df = pd.DataFrame(data, columns=columns)
 selected_columns = ['AVG(ships_killed)', 'AVG(planes_killed)', 'AVG(damage)', 'AVG(team_damage)', 'AVG(received_damage)', 'AVG(regen_hp)', 'AVG(is_alive)', 'AVG(credits)', 'AVG(exp)']
 data_selected = df[selected_columns]
 
+#TODO продумать нормализацию
 # Масштабирование данных
 scaler = StandardScaler()
 data_scaled = scaler.fit_transform(data_selected)
@@ -97,7 +98,7 @@ classifier = LogisticRegression()
 classifier.fit(X_train, y_train)
 
 # Сохранение модели в файл
-model_filename = 'logistic_regression_model.joblib'
+model_filename = '../task1_2/data_proc/logistic_regression_model.joblib'
 joblib.dump(classifier, model_filename)
 
 # Прогнозирование классов на тестовом наборе данных
