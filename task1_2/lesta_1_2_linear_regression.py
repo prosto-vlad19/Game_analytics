@@ -56,7 +56,7 @@ df.boxplot(column=columns_to_normalize)
 plt.xticks(fontsize=14, rotation=30)
 plt.yticks(fontsize=16)
 plt.title("Box Plot of Data", fontsize=18)
-plt.savefig("../task1_2/pictures/box_plot.png")
+plt.savefig("../task1_2/pictures/box_plot_linear_regression.png")
 plt.show()
 
 # много выбросов демонстрирует boxplot - выберем RobustScaler, как более устойчивый к выбросам метод
@@ -118,17 +118,6 @@ plt.title("Importance of Independent Variables", fontsize=18)
 plt.legend(fontsize=18)
 plt.savefig("../task1_2/pictures/linear_regression_credits_exp.png")
 plt.show()
-
-
-# Попробуем сделать тоже самое, только длякаждого класса кораблей в отдельности
-
-# Извлекаем данные из таблицы arena_members
-
-query_different_class = "select distinct(item_class) \
-from glossary_ships"
-cursor.execute(query)
-data = cursor.fetchall()
-
 
 # Закрываем соединение с базой данных
 conn.close()
