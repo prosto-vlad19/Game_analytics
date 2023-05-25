@@ -22,7 +22,7 @@ AVG(team_damage),AVG(received_damage),AVG(regen_hp),AVG(is_alive),\
 AVG(credits),AVG(exp)\
 FROM arena_members \
 GROUP BY vehicle_type_id \
-HAVING typeof(account_db_id) = 'integer' AND account_db_id >= 0"
+HAVING typeof(account_db_id) = 'integer'"
 cursor.execute(query)
 data = cursor.fetchall()
 
@@ -66,7 +66,7 @@ plt.xticks(
 plt.yticks(fontsize=16)
 plt.yscale("log")  # Применение логарифмической шкалы по оси y
 plt.title("Box Plot of Data (Log Scale)", fontsize=18)
-plt.savefig("../task1_2/pictures/box_plot_classification_no_bots.png")
+plt.savefig("../task1_2/pictures/box_plot_classification.png")
 plt.show()
 
 # Масштабирование данных
@@ -123,7 +123,7 @@ interpretation_data.insert(0, "Cluster Label", cluster_labels)
 print(interpretation_data)
 
 # сохранение классификации кораблей в файл
-filename = "../task1_2/data_proc/classification_ships_no_bots.csv"
+filename = "../task1_2/data_proc/classification_ships.csv"
 with open(filename, "w", encoding="utf-8-sig") as file:
     # Сохранение датафрейма в файл
     interpretation_data.to_csv(filename, index=False, encoding="utf-8-sig")
@@ -156,7 +156,7 @@ classifier = LogisticRegression()
 classifier.fit(X_train, y_train)
 
 # Сохранение модели в файл
-model_filename = "../task1_2/data_proc/logistic_regression_model_no_bots.joblib"
+model_filename = "../task1_2/data_proc/logistic_regression_model.joblib"
 joblib.dump(classifier, model_filename)
 
 # Прогнозирование классов на тестовом наборе данных

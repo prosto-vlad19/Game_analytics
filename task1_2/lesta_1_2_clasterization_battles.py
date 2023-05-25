@@ -15,8 +15,7 @@ cursor = conn.cursor()
 query_checking_for_types_and_nulls = """
 SELECT ships_killed, planes_killed, damage, team_damage, received_damage, regen_hp, is_alive, credits, exp
 FROM arena_members
-WHERE typeof(account_db_id) = 'integer' AND account_db_id >= 0
-  AND (
+WHERE typeof(account_db_id) = 'integer' AND (
     NOT (typeof(ships_killed) = 'integer' OR  ships_killed >= 0)
     OR NOT (typeof(planes_killed) = 'integer' OR  planes_killed >= 0)
     OR NOT (typeof(damage) = 'integer' OR  damage >= 0)
@@ -26,7 +25,7 @@ WHERE typeof(account_db_id) = 'integer' AND account_db_id >= 0
     OR NOT (typeof(is_alive) = 'integer' OR  is_alive >= 0)
     OR NOT (typeof(credits) = 'integer' OR  credits >= 0)
     OR NOT (typeof(exp) = 'integer' OR  exp >= 0)
-  )
+    )
 """
 cursor.execute(query_checking_for_types_and_nulls)
 data_checking_for_types_and_nulls = cursor.fetchall()
@@ -67,7 +66,7 @@ df.boxplot(column=columns)
 plt.xticks(fontsize=14, rotation=30)
 plt.yticks(fontsize=16)
 plt.title("Box Plot of Data", fontsize=18)
-plt.savefig("../task1_2/pictures/box_plot_clasterization_no_bots.png")
+plt.savefig("../task1_2/pictures/box_plot_clasterization.png")
 plt.show()
 
 # Масштабирование данных
@@ -108,7 +107,7 @@ interpretation_data.insert(0, "Cluster Label", cluster_labels)
 print(interpretation_data)
 
 
-filename = "../task1_2/data_proc/clasterization_battle_no_bots.csv"
+filename = "../task1_2/data_proc/clasterization_battle.csv"
 with open(filename, "w", encoding="utf-8-sig") as file:
     # Сохранение датафрейма в файл
     interpretation_data.to_csv(filename, index=False, encoding="utf-8-sig")
