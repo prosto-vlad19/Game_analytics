@@ -50,7 +50,7 @@ for class_data in classes:
                     FROM arena_members \
                     INNER JOIN glossary_ships \
                     ON arena_members.vehicle_type_id = glossary_ships.item_cd \
-                    WHERE typeof(item_class) = 'text' AND LENGTH(item_class) > 0 AND item_class = '{str(class_data[0])}'"
+                    WHERE typeof(item_class) = 'text' AND LENGTH(item_class) > 0 AND typeof(account_db_id) = 'integer' AND account_db_id >= 0 AND item_class = '{str(class_data[0])}' "
 
     cursor.execute(query_class)
     data = cursor.fetchall()
@@ -101,6 +101,6 @@ for class_data in classes:
         fontsize=18,
     )
     plt.savefig(
-        f"../task1_2/pictures/linear_regression_ships_killed_class_{str(class_data[0])}.png:
+        f"../task1_2/pictures/linear_regression_ships_killed_class_{str(class_data[0])}.png"
     )
     plt.show()
