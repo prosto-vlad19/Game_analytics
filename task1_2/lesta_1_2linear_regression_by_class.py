@@ -1,30 +1,47 @@
-import pandas as pd
+import sqlite3
 import warnings
+
 import matplotlib.cbook
 import matplotlib.pyplot as plt
+import pandas as pd
 from sklearn.linear_model import LinearRegression
-import sqlite3
 from sklearn.preprocessing import RobustScaler
 
 warnings.filterwarnings(
     "ignore", category=matplotlib.cbook.MatplotlibDeprecationWarning
 )
 
-#Попробуем сделать линейную регрессию для каждого класса кораблей в отдельности
+# Попробуем сделать линейную регрессию для каждого класса кораблей в отдельности
 
 # Подключение к базе данных
-conn = sqlite3.connect('../data/Dataset.db')
+conn = sqlite3.connect("../data/Dataset.db")
 cursor = conn.cursor()
-#Извлекаем данные из таблицы arena_members
+
+# Извлекаем данные из таблицы arena_members
+query_checking_for_types_and_nulls = """
+SELECT *
+FROM glossary_ships
+WHERE typeof(item_class) != 'text' OR LENGTH(item_class) <= 0
+"""
+cursor.execute(query_checking_for_types_and_nulls)
+data_checking_for_types_and_nulls = cursor.fetchall()
+
+if (len(data_checking_for_types_and_nulls)) == 0:
+    print("нет ошибок по типу данных и нет отрицательных значения в столбцах")
+else:
+    print(
+        "!!! ЕСТЬ ошибки по типу данных или по отрицательным значениям в столбцах, требуется очистка"
+    )
 
 query_different_class = "SELECT distinct(item_class) \
 FROM arena_members \
 INNER JOIN glossary_ships \
 ON arena_members.vehicle_type_id = glossary_ships.item_cd \
+WHERE typeof(item_class) = 'text' AND LENGTH(item_class) > 0 \
 "
 cursor.execute(query_different_class)
 classes = cursor.fetchall()
-print(classes)
+
 # Проходим по каждому классу
 for class_data in classes:
     # Извлекаем данные из таблиц для текущего класса кораблей
@@ -33,13 +50,23 @@ for class_data in classes:
                     FROM arena_members \
                     INNER JOIN glossary_ships \
                     ON arena_members.vehicle_type_id = glossary_ships.item_cd \
-                    WHERE item_class = '{str(class_data[0])}'"
+                    WHERE typeof(item_class) = 'text' AND LENGTH(item_class) > 0 AND item_class = '{str(class_data[0])}'"
+
     cursor.execute(query_class)
     data = cursor.fetchall()
 
     # Создаем DataFrame из полученных данных
-    columns = ['ships_killed', 'planes_killed', 'damage', 'team_damage', 'received_damage', 'regen_hp', 'is_alive',
-               'credits', 'exp']
+    columns = [
+        "ships_killed",
+        "planes_killed",
+        "damage",
+        "team_damage",
+        "received_damage",
+        "regen_hp",
+        "is_alive",
+        "credits",
+        "exp",
+    ]
     df_class = pd.DataFrame(data, columns=columns)
 
     scaler = RobustScaler()
@@ -48,8 +75,8 @@ for class_data in classes:
     df_copy = df_class.copy()
 
     # Разделяем данные на независимые переменные (X) и зависимую переменную (y)
-    X = df_class.drop('ships_killed', axis=1)
-    y = df_class['ships_killed']
+    X = df_class.drop("ships_killed", axis=1)
+    y = df_class["ships_killed"]
 
     # Обучаем линейную регрессию
     regression = LinearRegression()
@@ -57,7 +84,9 @@ for class_data in classes:
 
     # Выводим важность каждой независимой переменной
     importance = regression.coef_
-    print(f"Коэффициенты линейной регрессии для класса {str(class_data[0])}: {importance}")
+    print(
+        f"Коэффициенты линейной регрессии для класса {str(class_data[0])}: {importance}"
+    )
 
     # Визуализируем результаты
     plt.figure(figsize=(16, 12))
@@ -65,8 +94,13 @@ for class_data in classes:
     plt.bar(columns[1:], importance)
     plt.xticks(fontsize=14, rotation=30)
     plt.yticks(fontsize=16)
-    plt.xlabel('Independent Variables', fontsize=18)
-    plt.ylabel('Coefficient', fontsize=18)
-    plt.title(f'Importance of Independent Variables (Class: {str(class_data[0])})', fontsize=18)
-    plt.savefig(f"../task1_2/pictures/linear_regression_ships_killed_class_{str(class_data[0])}.png")
+    plt.xlabel("Independent Variables", fontsize=18)
+    plt.ylabel("Coefficient", fontsize=18)
+    plt.title(
+        f"Importance of Independent Variables (Class: {str(class_data[0])})",
+        fontsize=18,
+    )
+    plt.savefig(
+        f"../task1_2/pictures/linear_regression_ships_killed_class_{str(class_data[0])}.png:
+    )
     plt.show()
