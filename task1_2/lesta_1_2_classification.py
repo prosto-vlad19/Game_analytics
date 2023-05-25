@@ -19,7 +19,8 @@ query = "SELECT vehicle_type_id,AVG(ships_killed),AVG(planes_killed),AVG(damage)
 AVG(team_damage),AVG(received_damage),AVG(regen_hp),AVG(is_alive),\
 AVG(credits),AVG(exp)\
 FROM arena_members \
-GROUP BY vehicle_type_id"
+GROUP BY vehicle_type_id \
+HAVING typeof(account_db_id) = 'integer' AND account_db_id >= 0"
 cursor.execute(query)
 data = cursor.fetchall()
 
