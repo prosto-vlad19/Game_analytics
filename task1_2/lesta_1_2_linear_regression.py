@@ -16,7 +16,11 @@ conn = sqlite3.connect("../data/Dataset.db")
 cursor = conn.cursor()
 
 # Извлекаем данные из таблицы arena_members
-query = "SELECT ships_killed, planes_killed, damage,team_damage, received_damage,regen_hp, is_alive, credits, exp FROM arena_members"
+query = "SELECT ships_killed, planes_killed, damage, team_damage, received_damage,  regen_hp, is_alive, credits, exp \
+FROM arena_members \
+WHERE typeof(account_db_id) = 'integer' AND account_db_id >= 0 \
+"
+
 cursor.execute(query)
 data = cursor.fetchall()
 
