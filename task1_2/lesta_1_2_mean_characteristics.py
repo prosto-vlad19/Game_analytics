@@ -5,10 +5,10 @@ from sklearn.linear_model import LinearRegression
 import sqlite3
 
 # Подключение к базе данных
-conn = sqlite3.connect('Dataset.db')
+conn = sqlite3.connect('../data/Dataset.db')
 cursor = conn.cursor()
 
-# Среднее количество уничтоженных кораблей по уровням техники
+# запрос 1: Среднее количество уничтоженных кораблей по уровням техники
 query_mean_ships_killed_by_lvl = "SELECT item_level,AVG(ships_killed) \
 FROM arenas \
 INNER JOIN arena_members \
@@ -35,7 +35,7 @@ plt.ylabel('Average Ships Killed')
 plt.title('Average Ships Killed by Item Level')
 plt.show()
 
-# максимальные среднее количество уничтоженных кораблей по уровню и названию корабля
+# запрос 2: максимальные среднее количество уничтоженных кораблей по уровню и названию корабля
 query_max_mean_ships_killed_by_lvl_and_name = "SELECT t.item_level, t.item_name, t.avg_ships_killed \
 FROM ( \
     SELECT item_level, item_name, AVG(ships_killed) as avg_ships_killed \
@@ -81,16 +81,12 @@ plt.bar(df.index, df['avg_ships_killed'])
 plt.xlabel('Item')
 plt.ylabel('Average Ships Killed')
 plt.title('Max Average Ships Killed by Item Level and Name')
-
 # Установка позиций и подписей для оси x
 plt.xticks(df.index, [f"{item_name}\n(Level {item_level})" for item_name, item_level in zip(df['item_name'], df['item_level'])], rotation=90)
-
 plt.tight_layout()
-
-# Отображение графика
 plt.show()
 
-#максимальные среднее количество уничтоженных кораблей по классу и названию корабля
+#запрос 3: максимальные среднее количество уничтоженных кораблей по классу и названию корабля
 query_max_mean_ships_killed_by_class_and_name = "SELECT t.item_class, t.item_name, t.avg_ships_killed \
 FROM ( \
     SELECT item_class, item_name, AVG(ships_killed) as avg_ships_killed \
@@ -136,11 +132,7 @@ plt.bar(df.index, df['avg_ships_killed'])
 plt.xlabel('Item')
 plt.ylabel('Average Ships Killed')
 plt.title('Average Ships Killed by Item Class and Name')
-
 # Установка позиций и подписей для оси x
 plt.xticks(df.index, [f"{item_name}\n({item_class})" for item_name, item_class in zip(df['item_name'], df['item_class'])], rotation=90)
-
 plt.tight_layout()
-
-# Отображение графика
 plt.show()
