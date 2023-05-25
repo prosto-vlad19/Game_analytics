@@ -1,9 +1,12 @@
 import sqlite3
+import warnings
 
 import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import RobustScaler
+
+warnings.filterwarnings("ignore")
 
 # Подключение к базе данных
 conn = sqlite3.connect("../data/Dataset.db")
@@ -64,80 +67,12 @@ df.boxplot(column=columns)
 plt.xticks(fontsize=14, rotation=30)
 plt.yticks(fontsize=16)
 plt.title("Box Plot of Data", fontsize=18)
-plt.savefig("../task1_2/pictures/box_plot.png")
+plt.savefig("../task1_2/pictures/box_plot_clasterization_no_bots.png")
 plt.show()
 
 # Масштабирование данных
 scaler = RobustScaler()
 data_scaled = scaler.fit_transform(df)
-
-"""
-# Определение оптимального количества кластеров
-inertia = []
-silhouette_scores = []
-
-for k in range(2, 4):
-    kmeans = KMeans(n_clusters=k, random_state=0)
-    kmeans.fit(data_scaled)
-
-    # Расчет значения силуэта
-    labels = kmeans.labels_
-    silhouette_avg = silhouette_score(data_scaled, labels)
-
-    # Сохранение значений
-    inertia.append(kmeans.inertia_)
-    silhouette_scores.append(silhouette_avg)
-
-# Визуализация методом локтя
-plt.figure(figsize=(10, 6))
-plt.plot(range(2, 11), inertia, marker='o')
-plt.xlabel("Number of Clusters")
-plt.ylabel("Inertia")
-plt.title("Elbow Method")
-plt.show()
-
-# Визуализация методом силуэта
-plt.figure(figsize=(10, 6))
-plt.plot(range(2, 11), silhouette_scores, marker='o')
-plt.xlabel("Number of Clusters")
-plt.ylabel("Silhouette Score")
-plt.title("Silhouette Method")
-plt.show()
-"""
-
-
-"""
-# Использование алгоритма MiniBatchKMeans
-inertia_mb = []
-silhouette_scores_mb = []
-for k in range(2, 4):
-    minibatch_kmeans = MiniBatchKMeans(n_clusters=k, random_state=0)
-    minibatch_kmeans.fit(data_scaled)
-
-    # Расчет значения силуэта
-    labels_mb = minibatch_kmeans.labels_
-    silhouette_avg_mb = silhouette_score(data_scaled, labels_mb)
-
-    # Сохранение значений
-    inertia_mb.append(minibatch_kmeans.inertia_)
-    silhouette_scores_mb.append(silhouette_avg_mb)
-
-# Визуализация методом локтя для MiniBatchKMeans
-plt.figure(figsize=(10, 6))
-plt.plot(range(2, 4), inertia_mb, marker='o')
-plt.xlabel("Number of Clusters")
-plt.ylabel("Inertia (MiniBatchKMeans)")
-plt.title("Elbow Method")
-plt.show()
-
-# Визуализация методом силуэта для MiniBatchKMeans
-plt.figure(figsize=(10, 6))
-plt.plot(range(2, 14), silhouette_scores_mb, marker='o')
-plt.xlabel("Number of Clusters")
-plt.ylabel("Silhouette Score (MiniBatchKMeans)")
-plt.title("Silhouette Method")
-plt.show()
-"""
 
 # Определение оптимального количества кластеров
 inertia = []
@@ -173,7 +108,7 @@ interpretation_data.insert(0, "Cluster Label", cluster_labels)
 print(interpretation_data)
 
 
-filename = "../task1_2/data_proc/clasterization_battle.csv"
+filename = "../task1_2/data_proc/clasterization_battle_no_bots.csv"
 with open(filename, "w", encoding="utf-8-sig") as file:
     # Сохранение датафрейма в файл
     interpretation_data.to_csv(filename, index=False, encoding="utf-8-sig")

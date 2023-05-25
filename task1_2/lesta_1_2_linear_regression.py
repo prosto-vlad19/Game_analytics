@@ -1,15 +1,13 @@
 import sqlite3
 import warnings
 
-import matplotlib.cbook
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import RobustScaler
 
-warnings.filterwarnings(
-    "ignore", category=matplotlib.cbook.MatplotlibDeprecationWarning
-)
+warnings.filterwarnings("ignore")
 
 # Подключение к базе данных
 conn = sqlite3.connect("../data/Dataset.db")
@@ -60,7 +58,7 @@ df.boxplot(column=columns_to_normalize)
 plt.xticks(fontsize=14, rotation=30)
 plt.yticks(fontsize=16)
 plt.title("Box Plot of Data", fontsize=18)
-plt.savefig("../task1_2/pictures/box_plot_linear_regression.png")
+plt.savefig("../task1_2/pictures/box_plot_linear_regression_no_bots.png")
 plt.show()
 
 # много выбросов демонстрирует boxplot - выберем RobustScaler, как более устойчивый к выбросам метод
@@ -82,6 +80,10 @@ regression.fit(X, y)
 importance = regression.coef_
 print("Коэффициенты линейной регрессии ships_killed:", importance)
 
+# сохраняем коэффициенты регрессии в файл
+filename = "../task1_2/data_proc/linear_regression_ships_killed_no_bots.csv"
+np.savetxt(filename, importance, delimiter=',', fmt='%.6f')
+
 # Визуализируем результаты
 plt.figure(figsize=(16, 12))
 plt.subplots_adjust(bottom=0.15, top=0.95)
@@ -94,7 +96,7 @@ plt.yticks(fontsize=16)
 plt.xlabel("Independent Variables", fontsize=18)
 plt.ylabel("Coefficient", fontsize=18)
 plt.title("Importance of Independent Variables", fontsize=18)
-plt.savefig("../task1_2/pictures/linear_regression_ships_killed.png")
+plt.savefig("../task1_2/pictures/linear_regression_ships_killed_no_bots.png")
 plt.show()
 
 # Разделяем данные на независимые переменные (X) и зависимые переменные (y)
@@ -109,6 +111,10 @@ regression.fit(X, y)
 importance = regression.coef_
 print("Коэффициенты линейной регрессии credits и exp:", importance)
 
+# сохраняем коэффициенты регрессии в файл
+filename = "../task1_2/data_proc/linear_regression_credits_exp_no_bots.csv"
+np.savetxt(filename, importance, delimiter=',', fmt='%.6f')
+
 # Построение графика
 plt.figure(figsize=(16, 12))
 plt.subplots_adjust(bottom=0.15, top=0.95)
@@ -120,7 +126,7 @@ plt.xlabel("Independent Variables", fontsize=18)
 plt.ylabel("Coefficient", fontsize=18)
 plt.title("Importance of Independent Variables", fontsize=18)
 plt.legend(fontsize=18)
-plt.savefig("../task1_2/pictures/linear_regression_credits_exp.png")
+plt.savefig("../task1_2/pictures/linear_regression_credits_exp_no_bots.png")
 plt.show()
 
 # Закрываем соединение с базой данных

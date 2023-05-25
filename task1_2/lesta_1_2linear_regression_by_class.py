@@ -1,15 +1,13 @@
 import sqlite3
 import warnings
 
-import matplotlib.cbook
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import RobustScaler
 
-warnings.filterwarnings(
-    "ignore", category=matplotlib.cbook.MatplotlibDeprecationWarning
-)
+warnings.filterwarnings("ignore")
 
 # Попробуем сделать линейную регрессию для каждого класса кораблей в отдельности
 
@@ -88,6 +86,10 @@ for class_data in classes:
         f"Коэффициенты линейной регрессии для класса {str(class_data[0])}: {importance}"
     )
 
+    # сохраняем коэффициенты регрессии в файл
+    filename = f"../task1_2/data_proc/linear_regression_ships_killed_class_{str(class_data[0])}_no_bots.csv"
+    np.savetxt(filename, importance, delimiter=',', fmt='%.6f')
+
     # Визуализируем результаты
     plt.figure(figsize=(16, 12))
     plt.subplots_adjust(bottom=0.15, top=0.95)
@@ -101,6 +103,6 @@ for class_data in classes:
         fontsize=18,
     )
     plt.savefig(
-        f"../task1_2/pictures/linear_regression_ships_killed_class_{str(class_data[0])}.png"
+        f"../task1_2/pictures/linear_regression_ships_killed_class_{str(class_data[0])}_no_bots.png"
     )
     plt.show()
