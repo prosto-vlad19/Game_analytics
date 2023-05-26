@@ -1,20 +1,51 @@
 import csv
-import os
 import sqlite3
 import warnings
 
-import matplotlib.cbook
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-warnings.filterwarnings(
-    "ignore", category=matplotlib.cbook.MatplotlibDeprecationWarning
-)
+warnings.filterwarnings("ignore")
+
+#Выбор режима аналитики - для всех игороков (full) или не ботов (no_bots)
+mode = "no_bots"
+
+if mode == "full":
+    postfix = ""
+    where = ""
+
+if mode == "no_bots":
+    postfix = "_no_bots"
+    where = "WHERE account_db_id >= 0"
 
 # Подключение к базе данных
 conn = sqlite3.connect("../data/Dataset.db")
 cursor = conn.cursor()
+# проверка на наличие некорректных данных
+query_checking_for_types_and_not_positive = """
+SELECT *
+FROM arenas
+WHERE 
+typeof(arena_id) = NOT 'integer'
+OR typeof(periphery_id) = NOT 'integer'
+OR typeof(winner_team_id) = NOT 'integer'
+OR typeof(start_dt) = NOT 'TEXT'
+OR typeof(duration_sec) = NOT 'integer'
+OR typeof(map_type_id) = NOT 'integer'
+OR typeof(team_build_type_id) = NOT 'integer'
+OR typeof(battle_level_id) = NOT 'integer'
+OR start_dt <=0
+OR duration_sec <= 0
+"""
+
+cursor.execute(query_checking_for_types_and_not_positive)
+data_checking_for_types_and_not_positive = cursor.fetchall()
+
+if(len(data_checking_for_types_and_not_positive)) == 0:
+    print("нет ошибок по типу данных и нет не положительных  значения в столбцах")
+else:
+    print("!!! ЕСТЬ ошибки по типу данных или по не положительным значениям в столбцах, требуется очистка")
 
 # Запрос 1: определение количества уникальных значений в столбце "team_build_type_id"
 unique_modes_query = "SELECT COUNT(DISTINCT team_build_type_id) FROM arenas"
@@ -22,12 +53,17 @@ cursor.execute(unique_modes_query)
 unique_modes_count = cursor.fetchone()[0]
 print("Количество различных игровых режимов:", unique_modes_count)
 
-# Запрос 2: подсчет количества записей для каждого игрового режима
-count_modes_query = (
-    "SELECT team_build_type_id, COUNT(*) as count"
-    " FROM arenas"
-    " GROUP BY team_build_type_id"
-)
+# Запрос 2: подсчет количества записей для каждого игрового режима (без ботов)
+count_modes_query = f"""
+SELECT team_build_type_id, COUNT(*) as count
+FROM arenas
+JOIN arena_members
+ON arenas.arena_id = arena_members.arena_id
+AND arenas.periphery_id = arena_members.periphery_id
+{where}
+GROUP BY team_build_type_id
+
+"""
 cursor.execute(count_modes_query)
 count_maps_results = cursor.fetchall()
 
@@ -46,11 +82,11 @@ plt.bar(modes, counts)
 plt.xlabel("Игровой режим")
 plt.ylabel("Количество записей")
 plt.title("Популярность игровых режимов")
-plt.savefig("../task1_1/pictures/numb_of_rec_for_each_game_mode.png")
+plt.savefig(f"../task1_1/pictures/numb_of_rec_for_each_game_mode{postfix}.png")
 plt.show()
 
 # Сохранение результатов в файл CSV
-filename = "../task1_1/data_proc/numb_of_rec_for_each_game_mode.csv"
+filename = f"../task1_1/data_proc/numb_of_rec_for_each_game_mode{postfix}.csv"
 with open(filename, "w", newline="") as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(["Игровой режим", "Количество записей"])
@@ -60,15 +96,16 @@ with open(filename, "w", newline="") as csvfile:
 
 print("Результаты сохранены в файл", filename)
 
-# Запрос 3: получение среднего количества заработанных опыта
-# и кредитов для каждого игрового режима
+# Запрос 3: получение среднего количества заработанных опыта,
+# кредитов и количества записей для каждого игрового режима (без ботов)
 
-bot_count_query = """
+bot_count_query = f"""
 SELECT team_build_type_id, AVG(exp) as avg_experience, AVG(credits) as avg_credits
 FROM arenas
 JOIN arena_members
 ON arenas.arena_id = arena_members.arena_id
 AND arenas.periphery_id = arena_members.periphery_id
+{where}
 GROUP BY team_build_type_id
 """
 
@@ -127,15 +164,16 @@ ax.set_xticklabels(df["Игровой режим"], rotation=45)
 ax.legend(loc="upper left", bbox_to_anchor=(1, 1))
 
 plt.tight_layout()
-plt.savefig("../task1_1/pictures/avg_exp_and_cred_for_each_game_mode.png")
+plt.savefig(f"../task1_1/pictures/avg_exp_and_cred_for_each_game_mode{postfix}.png")
 plt.show()
 
 # Сохранение таблицы с результатами в файл
-filename = "../task1_1/data_proc/avg_exp_and_cred_for_each_game_mode.csv"
+filename = f"../task1_1/data_proc/avg_exp_and_cred_for_each_game_mode{postfix}.csv"
 with open(filename, 'w', encoding='utf-8-sig') as file:
     # Сохранение датафрейма в файл
     df.to_csv(filename, index=False, encoding='utf-8-sig')
 print("Таблица с результатами сохранена в файл", filename)
+
 
 # Запрос 4: получение среднего количества ботов для каждого игрового режима
 bot_query = """
@@ -206,16 +244,21 @@ with open(filename, "w", newline="") as csvfile:
 
 print("Результаты сохранены в файл", filename)
 
+
 # Запрос 5: получение средней продолжительности боя
-# и количество записей для каждого игрового режима
-query_day = """
-SELECT team_build_type_id, AVG(duration_sec) as avg_duration, COUNT(*) as count
-FROM arenas
+# и количество записей для каждого игрового режима (без ботов)
+query_avg_dur = f"""
+SELECT team_build_type_id,AVG(duration_sec) as avg_duration, COUNT(*)
+FROM arenas 
+JOIN arena_members 
+ON arenas.arena_id = arena_members.arena_id
+AND arenas.periphery_id = arena_members.periphery_id
+{where}
 GROUP BY team_build_type_id
 """
 
 # Выполнение запроса
-cursor.execute(query_day)
+cursor.execute(query_avg_dur)
 results = cursor.fetchall()
 
 # Вывод результатов
@@ -255,11 +298,11 @@ ax.set_xticklabels(df["Игровой режим"], rotation=45)
 ax.legend()
 
 plt.tight_layout()
-plt.savefig("../task1_1/pictures/avg_battle_durat_and_numb_of_rec_for_each_game_mode.png")
+plt.savefig(f"../task1_1/pictures/avg_battle_durat_and_numb_of_rec_for_each_game_mode{postfix}.png")
 plt.show()
 
 # Сохранение результатов в файл CSV
-filename = "../task1_1/data_proc/avg_battle_durat_and_numb_of_rec_for_each_game_mode.csv"
+filename = f"../task1_1/data_proc/avg_battle_durat_and_numb_of_rec_for_each_game_mode{postfix}.csv"
 with open(filename, "w", newline="") as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(
@@ -271,10 +314,14 @@ with open(filename, "w", newline="") as csvfile:
 print("Результаты сохранены в файл", filename)
 
 # Запрос 6: получение дня недели боя и подсчета количества записей
-query_day = """
+query_day = f"""
 SELECT CASE WHEN strftime('%w', start_dt) = '0' THEN '7'
 ELSE strftime('%w', start_dt) END as weekday, COUNT(*) as count
 FROM arenas
+JOIN arena_members 
+ON arenas.arena_id = arena_members.arena_id
+AND arenas.periphery_id = arena_members.periphery_id
+{where}
 GROUP BY weekday
 """
 
@@ -303,11 +350,11 @@ ax.set_xticks(x)
 ax.set_xticklabels(["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"])
 
 plt.tight_layout()
-plt.savefig("../task1_1/pictures/numb_of_rec_by_day_of_the_week.png")
+plt.savefig(f"../task1_1/pictures/numb_of_rec_by_day_of_the_week{postfix}.png")
 plt.show()
 
 # Сохранение результатов в файл CSV
-filename = "../task1_1/data_proc/numb_of_rec_by_day_of_the_week.csv"
+filename = f"../task1_1/data_proc/numb_of_rec_by_day_of_the_week{postfix}.csv"
 with open(filename, "w", newline="") as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(["День недели", "Количество записей"])
@@ -318,9 +365,15 @@ print("Результаты сохранены в файл", filename)
 
 
 # Запрос 7: подсчет количества записей для каждой карты
-count_maps_query = (
-    "SELECT map_type_id, COUNT(*) as count FROM arenas GROUP BY map_type_id"
-)
+count_maps_query = f"""
+   SELECT map_type_id, COUNT(*) as count
+FROM arenas
+JOIN arena_members 
+ON arenas.arena_id = arena_members.arena_id
+AND arenas.periphery_id = arena_members.periphery_id
+{where}
+GROUP BY map_type_id
+"""
 cursor.execute(count_maps_query)
 count_maps_results = cursor.fetchall()
 
@@ -346,11 +399,11 @@ plt.title("Статистика записей по картам")
 plt.xticks(x)
 
 plt.tight_layout()
-plt.savefig("../task1_1/pictures/numb_of_rec_for_each_map.png")
+plt.savefig(f"../task1_1/pictures/numb_of_rec_for_each_map{postfix}.png")
 plt.show()
 
 # Сохранение результатов в файл CSV
-filename = "../task1_1/data_proc/numb_of_rec_for_each_map.csv"
+filename = f"../task1_1/data_proc/numb_of_rec_for_each_map{postfix}.csv"
 with open(filename, "w", newline="") as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(["Карта ID", "Количество записей"])
@@ -360,9 +413,15 @@ with open(filename, "w", newline="") as csvfile:
 print("Результаты сохранены в файл", filename)
 
 # Запрос 8: подсчет количества записей для каждого уровня боя
-count_levels_query = (
-    "SELECT battle_level_id, COUNT(*) as count FROM arenas GROUP BY battle_level_id"
-)
+count_levels_query = f"""
+       SELECT battle_level_id, COUNT(*) as count 
+    FROM arenas 
+    JOIN arena_members 
+    ON arenas.arena_id = arena_members.arena_id
+    AND arenas.periphery_id = arena_members.periphery_id
+    {where}
+    GROUP BY battle_level_id
+"""
 cursor.execute(count_levels_query)
 count_lv_results = cursor.fetchall()
 
@@ -378,11 +437,11 @@ plt.ylabel("Количество записей")
 plt.title("Статистика записей по уровням боя")
 
 plt.tight_layout()
-plt.savefig("../task1_1/pictures/numb_of_rec_for_each_battle_level.png")
+plt.savefig(f"../task1_1/pictures/numb_of_rec_for_each_battle_level{postfix}.png")
 plt.show()
 
 # Сохранение результатов в файл CSV
-filename = "../task1_1/data_proc/numb_of_rec_for_each_battle_level.csv"
+filename = f"../task1_1/data_proc/numb_of_rec_for_each_battle_level{postfix}.csv"
 with open(filename, "w", newline="") as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(["Уровень боя", "Количество записей"])
