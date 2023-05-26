@@ -38,14 +38,14 @@ columns = ['item_level', 'average_ships_killed']
 df = pd.DataFrame(data, columns=columns)
 
 # Запись данных в файл CSV
-df.to_csv('../task1_2/data_proc/mean_ships_killed_by_lvl.csv', index=False)
+df.to_csv(f'../task1_2/data_proc/mean_ships_killed_by_lvl{postfix}.csv', index=False)
 
 # Построение столбчатой диаграммы
 plt.bar(df['item_level'], df['average_ships_killed'])
 plt.xlabel('Item Level')
 plt.ylabel('Average Ships Killed')
 plt.title('Average Ships Killed by Item Level')
-plt.savefig("../task1_2/pictures/mean_ships_killed_by_lvl.csv'.png")
+plt.savefig(f"../task1_2/pictures/mean_ships_killed_by_lvl{postfix}.png")
 plt.show()
 
 # запрос 2: максимальные среднее количество уничтоженных кораблей по уровню и названию корабля
@@ -121,7 +121,7 @@ plt.figure(figsize=(10, 6))
 plt.bar(df.index, df['avg_ships_killed'])
 plt.xlabel('Item')
 plt.ylabel('Average Ships Killed')
-plt.title('Average Ships Killed by Item Class and Name')
+plt.title('Max Average Ships Killed by Item Class and Name')
 # Установка позиций и подписей для оси x
 plt.xticks(df.index, [f"{item_name}\n({item_class})" for item_name, item_class in zip(df['item_name'], df['item_class'])], rotation=90)
 plt.tight_layout()

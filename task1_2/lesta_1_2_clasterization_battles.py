@@ -9,7 +9,7 @@ from sklearn.preprocessing import RobustScaler
 warnings.filterwarnings("ignore")
 
 #Выбор режима аналитики - для всех игроков (full) или не ботов (no_bots)
-mode = "full"
+mode = "no_bots"
 
 if mode == "full":
     postfix = ""

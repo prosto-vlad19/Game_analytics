@@ -18,7 +18,7 @@ conn = sqlite3.connect("../data/Dataset.db")
 cursor = conn.cursor()
 
 #Выбор режима аналитики - для всех игроков (full) или не ботов (no_bots)
-mode = "no_bots"
+mode = "full"
 
 if mode == "full":
     postfix = ""
@@ -115,7 +115,7 @@ plt.title("Silhouette Method")
 plt.show()
 
 # Применение метода K-средних с оптимальным количеством кластеров
-k = 2
+k = 4
 kmeans = KMeans(n_clusters=k, random_state=0)
 kmeans.fit(data_scaled)
 
@@ -135,7 +135,7 @@ interpretation_data.insert(0, "Cluster Label", cluster_labels)
 print(interpretation_data)
 
 # сохранение классификации кораблей в файл
-filename = f"../task1_2/data_proc/classification_ships{postfix}.csv"
+filename = f"../task1_2/data_proc/classification_ships{k}{postfix}.csv"
 with open(filename, "w", encoding="utf-8-sig") as file:
     # Сохранение датафрейма в файл
     interpretation_data.to_csv(filename, index=False, encoding="utf-8-sig")
@@ -168,7 +168,7 @@ classifier = LogisticRegression()
 classifier.fit(X_train, y_train)
 
 # Сохранение модели в файл
-model_filename = f"../task1_2/data_proc/logistic_regression_model{postfix}.joblib"
+model_filename = f"../task1_2/data_proc/logistic_regression_model{k}{postfix}.joblib"
 joblib.dump(classifier, model_filename)
 
 # Прогнозирование классов на тестовом наборе данных
