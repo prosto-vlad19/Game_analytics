@@ -8,6 +8,17 @@ from sklearn.preprocessing import RobustScaler
 
 warnings.filterwarnings("ignore")
 
+#Выбор режима аналитики - для всех игроков (full) или не ботов (no_bots)
+mode = "full"
+
+if mode == "full":
+    postfix = ""
+    where = ""
+
+if mode == "no_bots":
+    postfix = "_no_bots"
+    where = "AND account_db_id >= 0"
+
 # Подключение к базе данных
 conn = sqlite3.connect("../data/Dataset.db")
 cursor = conn.cursor()
@@ -36,10 +47,10 @@ else:
     print("!!! ЕСТЬ ошибки по типу данных или по отрицательным значениям в столбцах, требуется очистка")
 
 
-query = "SELECT ships_killed, planes_killed, damage, team_damage, received_damage,  regen_hp, is_alive, credits, exp \
-FROM arena_members \
-WHERE typeof(account_db_id) = 'integer' AND account_db_id >= 0 \
-"
+query = f"""SELECT ships_killed, planes_killed, damage, team_damage, received_damage,  regen_hp, is_alive, credits, exp 
+FROM arena_members 
+WHERE typeof(account_db_id) = 'integer' {where}
+"""
 cursor.execute(query)
 data = cursor.fetchall()
 
@@ -66,7 +77,7 @@ df.boxplot(column=columns)
 plt.xticks(fontsize=14, rotation=30)
 plt.yticks(fontsize=16)
 plt.title("Box Plot of Data", fontsize=18)
-plt.savefig("../task1_2/pictures/box_plot_clasterization.png")
+plt.savefig(f"../task1_2/pictures/box_plot_clasterization{postfix}.png")
 plt.show()
 
 # Масштабирование данных
@@ -107,7 +118,7 @@ interpretation_data.insert(0, "Cluster Label", cluster_labels)
 print(interpretation_data)
 
 
-filename = "../task1_2/data_proc/clasterization_battle.csv"
+filename = f"../task1_2/data_proc/clasterization_battle{postfix}.csv"
 with open(filename, "w", encoding="utf-8-sig") as file:
     # Сохранение датафрейма в файл
     interpretation_data.to_csv(filename, index=False, encoding="utf-8-sig")

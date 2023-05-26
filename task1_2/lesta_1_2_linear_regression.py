@@ -9,15 +9,26 @@ from sklearn.preprocessing import RobustScaler
 
 warnings.filterwarnings("ignore")
 
+#Выбор режима аналитики - для всех игроков (full) или не ботов (no_bots)
+mode = "no_bots"
+
+if mode == "full":
+    postfix = ""
+    where = ""
+
+if mode == "no_bots":
+    postfix = "_no_bots"
+    where = "AND account_db_id >= 0"
+
 # Подключение к базе данных
 conn = sqlite3.connect("../data/Dataset.db")
 cursor = conn.cursor()
 
 # Извлекаем данные из таблицы arena_members
-query = "SELECT ships_killed, planes_killed, damage, team_damage, received_damage,  regen_hp, is_alive, credits, exp \
-FROM arena_members \
-WHERE typeof(account_db_id) = 'integer' \
-"
+query = f"""SELECT ships_killed, planes_killed, damage, team_damage, received_damage,  regen_hp, is_alive, credits, exp 
+FROM arena_members 
+WHERE typeof(account_db_id) = 'integer' {where}
+"""
 
 cursor.execute(query)
 data = cursor.fetchall()
@@ -58,7 +69,7 @@ df.boxplot(column=columns_to_normalize)
 plt.xticks(fontsize=14, rotation=30)
 plt.yticks(fontsize=16)
 plt.title("Box Plot of Data", fontsize=18)
-plt.savefig("../task1_2/pictures/box_plot_linear_regression.png")
+plt.savefig(f"../task1_2/pictures/box_plot_linear_regression{postfix}.png")
 plt.show()
 
 # много выбросов демонстрирует boxplot - выберем RobustScaler, как более устойчивый к выбросам метод
@@ -81,7 +92,7 @@ importance = regression.coef_
 print("Коэффициенты линейной регрессии ships_killed:", importance)
 
 # сохраняем коэффициенты регрессии в файл
-filename = "../task1_2/data_proc/linear_regression_ships_killed.csv"
+filename = f"../task1_2/data_proc/linear_regression_ships_killed{postfix}.csv"
 np.savetxt(filename, importance, delimiter=',', fmt='%.6f')
 
 # Визуализируем результаты
@@ -96,7 +107,7 @@ plt.yticks(fontsize=16)
 plt.xlabel("Independent Variables", fontsize=18)
 plt.ylabel("Coefficient", fontsize=18)
 plt.title("Importance of Independent Variables", fontsize=18)
-plt.savefig("../task1_2/pictures/linear_regression_ships_killed.png")
+plt.savefig(f"../task1_2/pictures/linear_regression_ships_killed{postfix}.png")
 plt.show()
 
 # Разделяем данные на независимые переменные (X) и зависимые переменные (y)
@@ -112,7 +123,7 @@ importance = regression.coef_
 print("Коэффициенты линейной регрессии credits и exp:", importance)
 
 # сохраняем коэффициенты регрессии в файл
-filename = "../task1_2/data_proc/linear_regression_credits_exp.csv"
+filename = f"../task1_2/data_proc/linear_regression_credits_exp{postfix}.csv"
 np.savetxt(filename, importance, delimiter=',', fmt='%.6f')
 
 # Построение графика
@@ -126,7 +137,7 @@ plt.xlabel("Independent Variables", fontsize=18)
 plt.ylabel("Coefficient", fontsize=18)
 plt.title("Importance of Independent Variables", fontsize=18)
 plt.legend(fontsize=18)
-plt.savefig("../task1_2/pictures/linear_regression_credits_exp.png")
+plt.savefig(f"../task1_2/pictures/linear_regression_credits_exp{postfix}.png")
 plt.show()
 
 # Закрываем соединение с базой данных

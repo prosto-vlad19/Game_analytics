@@ -9,6 +9,17 @@ from sklearn.preprocessing import RobustScaler
 
 warnings.filterwarnings("ignore")
 
+#Выбор режима аналитики - для всех игроков (full) или не ботов (no_bots)
+mode = "full"
+
+if mode == "full":
+    postfix = ""
+    where = ""
+
+if mode == "no_bots":
+    postfix = "_no_bots"
+    where = "AND account_db_id >= 0"
+
 # Попробуем сделать линейную регрессию для каждого класса кораблей в отдельности
 
 # Подключение к базе данных
@@ -31,24 +42,24 @@ else:
         "!!! ЕСТЬ ошибки по типу данных или по отрицательным значениям в столбцах, требуется очистка"
     )
 
-query_different_class = "SELECT distinct(item_class) \
-FROM arena_members \
-INNER JOIN glossary_ships \
-ON arena_members.vehicle_type_id = glossary_ships.item_cd \
-WHERE typeof(item_class) = 'text' AND LENGTH(item_class) > 0 \
-"
+query_different_class = f"""SELECT distinct(item_class) 
+FROM arena_members 
+INNER JOIN glossary_ships 
+ON arena_members.vehicle_type_id = glossary_ships.item_cd 
+WHERE typeof(item_class) = 'text' AND LENGTH(item_class) > 0 {where}
+"""
 cursor.execute(query_different_class)
 classes = cursor.fetchall()
 
 # Проходим по каждому классу
 for class_data in classes:
     # Извлекаем данные из таблиц для текущего класса кораблей
-    query_class = f"SELECT ships_killed, planes_killed, damage, team_damage, \
-                    received_damage, regen_hp, is_alive, credits, exp \
-                    FROM arena_members \
-                    INNER JOIN glossary_ships \
-                    ON arena_members.vehicle_type_id = glossary_ships.item_cd \
-                    WHERE typeof(item_class) = 'text' AND LENGTH(item_class) > 0 AND typeof(account_db_id) = 'integer' AND item_class = '{str(class_data[0])}' "
+    query_class = f"""SELECT ships_killed, planes_killed, damage, team_damage, 
+                    received_damage, regen_hp, is_alive, credits, exp 
+                    FROM arena_members 
+                    INNER JOIN glossary_ships 
+                    ON arena_members.vehicle_type_id = glossary_ships.item_cd 
+                    WHERE typeof(item_class) = 'text' AND LENGTH(item_class) > 0 AND typeof(account_db_id) = 'integer' {where} AND item_class = '{str(class_data[0])}' """
 
     cursor.execute(query_class)
     data = cursor.fetchall()
@@ -87,7 +98,7 @@ for class_data in classes:
     )
 
     # сохраняем коэффициенты регрессии в файл
-    filename = f"../task1_2/data_proc/linear_regression_ships_killed_class_{str(class_data[0])}.csv"
+    filename = f"../task1_2/data_proc/linear_regression_ships_killed_class_{str(class_data[0])}{postfix}.csv"
     np.savetxt(filename, importance, delimiter=',', fmt='%.6f')
 
     # Визуализируем результаты
@@ -103,6 +114,6 @@ for class_data in classes:
         fontsize=18,
     )
     plt.savefig(
-        f"../task1_2/pictures/linear_regression_ships_killed_class_{str(class_data[0])}.png"
+        f"../task1_2/pictures/linear_regression_ships_killed_class_{str(class_data[0])}{postfix}.png"
     )
     plt.show()

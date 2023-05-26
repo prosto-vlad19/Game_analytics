@@ -17,12 +17,24 @@ warnings.filterwarnings("ignore")
 conn = sqlite3.connect("../data/Dataset.db")
 cursor = conn.cursor()
 
-query = "SELECT vehicle_type_id,AVG(ships_killed),AVG(planes_killed),AVG(damage),\
-AVG(team_damage),AVG(received_damage),AVG(regen_hp),AVG(is_alive),\
-AVG(credits),AVG(exp)\
-FROM arena_members \
-GROUP BY vehicle_type_id \
-HAVING typeof(account_db_id) = 'integer'"
+#Выбор режима аналитики - для всех игроков (full) или не ботов (no_bots)
+mode = "no_bots"
+
+if mode == "full":
+    postfix = ""
+    where = ""
+
+if mode == "no_bots":
+    postfix = "_no_bots"
+    where = "AND account_db_id >= 0"
+
+query = f"""SELECT vehicle_type_id,AVG(ships_killed),AVG(planes_killed),AVG(damage),
+AVG(team_damage),AVG(received_damage),AVG(regen_hp),AVG(is_alive),
+AVG(credits),AVG(exp)
+FROM arena_members 
+WHERE typeof(account_db_id) = 'integer' {where}
+GROUP BY vehicle_type_id 
+"""
 cursor.execute(query)
 data = cursor.fetchall()
 
@@ -66,7 +78,7 @@ plt.xticks(
 plt.yticks(fontsize=16)
 plt.yscale("log")  # Применение логарифмической шкалы по оси y
 plt.title("Box Plot of Data (Log Scale)", fontsize=18)
-plt.savefig("../task1_2/pictures/box_plot_classification.png")
+plt.savefig(f"../task1_2/pictures/box_plot_classification{postfix}.png")
 plt.show()
 
 # Масштабирование данных
@@ -123,7 +135,7 @@ interpretation_data.insert(0, "Cluster Label", cluster_labels)
 print(interpretation_data)
 
 # сохранение классификации кораблей в файл
-filename = "../task1_2/data_proc/classification_ships.csv"
+filename = f"../task1_2/data_proc/classification_ships{postfix}.csv"
 with open(filename, "w", encoding="utf-8-sig") as file:
     # Сохранение датафрейма в файл
     interpretation_data.to_csv(filename, index=False, encoding="utf-8-sig")
@@ -156,7 +168,7 @@ classifier = LogisticRegression()
 classifier.fit(X_train, y_train)
 
 # Сохранение модели в файл
-model_filename = "../task1_2/data_proc/logistic_regression_model.joblib"
+model_filename = f"../task1_2/data_proc/logistic_regression_model{postfix}.joblib"
 joblib.dump(classifier, model_filename)
 
 # Прогнозирование классов на тестовом наборе данных
