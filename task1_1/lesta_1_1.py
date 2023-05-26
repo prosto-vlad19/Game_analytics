@@ -9,7 +9,7 @@ import pandas as pd
 warnings.filterwarnings("ignore")
 
 #Выбор режима аналитики - для всех игороков (full) или не ботов (no_bots)
-mode = "no_bots"
+mode = "full"
 
 if mode == "full":
     postfix = ""
@@ -78,6 +78,7 @@ modes = [row[0] for row in count_maps_results]
 counts = [row[1] for row in count_maps_results]
 
 # Создание графика с количеством записей для каждого игрового режима
+plt.figure(figsize=(10, 6))
 plt.bar(modes, counts)
 plt.xlabel("Игровой режим")
 plt.ylabel("Количество записей")
@@ -97,7 +98,7 @@ with open(filename, "w", newline="") as csvfile:
 print("Результаты сохранены в файл", filename)
 
 # Запрос 3: получение среднего количества заработанных опыта,
-# кредитов и количества записей для каждого игрового режима (без ботов)
+# кредитов и количество записей для каждого игрового режима
 
 bot_count_query = f"""
 SELECT team_build_type_id, AVG(exp) as avg_experience, AVG(credits) as avg_credits
@@ -175,7 +176,7 @@ with open(filename, 'w', encoding='utf-8-sig') as file:
 print("Таблица с результатами сохранена в файл", filename)
 
 
-# Запрос 4: получение среднего количества ботов для каждого игрового режима
+# Запрос 4: получение средней доли ботов для каждого игрового режима
 bot_query = """
 SELECT team_build_type_id, AVG(CASE WHEN account_db_id < 0 THEN 1 ELSE 0 END)
 as avg_bots
@@ -191,11 +192,11 @@ cursor.execute(bot_query)
 bot_results = cursor.fetchall()
 
 # Вывод результатов
-print("Среднее количество ботов для каждого игрового режима:")
+print("Средняя доля ботов для каждого игрового режима:")
 for row in bot_results:
     mode_id, avg_bots = row
     print("Режим", mode_id)
-    print("Среднее количество ботов:", avg_bots)
+    print("Средняя доля ботов:", avg_bots)
     print()
 
 bot_results_new = []
@@ -209,7 +210,7 @@ for bot_row, record_row in zip(bot_results, count_maps_results):
 # Построение диаграммы
 df = pd.DataFrame(
     bot_results_new,
-    columns=["Игровой режим", "Среднее количество ботов", "Количество записей"],
+    columns=["Игровой режим", "Средняя доля ботов", "Количество записей"],
 )
 fig, ax = plt.subplots()
 bar_width = 0.35
@@ -217,7 +218,7 @@ bar_width = 0.35
 x = df["Игровой режим"]
 ax.set_yscale("log")
 ax.bar(
-    x, df["Среднее количество ботов"], width=bar_width, label="Среднее количество ботов"
+    x, df["Средняя доля ботов"], width=bar_width, label="Средняя доля ботов"
 )
 ax.bar(
     x + bar_width, df["Количество записей"], width=bar_width, label="Количество записей"
@@ -231,11 +232,11 @@ ax.set_xticklabels(df["Игровой режим"], rotation=45)
 ax.legend()
 
 plt.tight_layout()
-plt.savefig("../task1_1/pictures/avg_numb_of_bots_for_each_game_mode.png")
+plt.savefig("../task1_1/pictures/avg_proportion_of_bots_for_each_game_mode.png")
 plt.show()
 
 # Сохранение результатов в файл CSV
-filename = "../task1_1/data_proc/avg_numb_of_bots_for_each_game_mode.csv"
+filename = "../task1_1/data_proc/avg_proportion_of_bots_for_each_game_mode.csv"
 with open(filename, "w", newline="") as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(["Игровой режим", "Среднее количество ботов"])
@@ -275,7 +276,8 @@ df = pd.DataFrame(
     results,
     columns=["Игровой режим", "Средняя продолжительность боя", "Количество записей"],
 )
-fig, ax = plt.subplots()
+
+fig, ax = plt.subplots(figsize=(8, 6))
 bar_width = 0.35
 
 x = df["Игровой режим"]
