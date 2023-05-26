@@ -115,7 +115,7 @@ plt.title("Silhouette Method")
 plt.show()
 
 # Применение метода K-средних с оптимальным количеством кластеров
-k = 4
+k = 2
 kmeans = KMeans(n_clusters=k, random_state=0)
 kmeans.fit(data_scaled)
 
