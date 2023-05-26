@@ -9,7 +9,7 @@ import pandas as pd
 warnings.filterwarnings("ignore")
 
 #Выбор режима аналитики - для всех игороков (full) или не ботов (no_bots)
-mode = "full"
+mode = "no_bots"
 
 if mode == "full":
     postfix = ""
@@ -83,6 +83,7 @@ plt.bar(modes, counts)
 plt.xlabel("Игровой режим")
 plt.ylabel("Количество записей")
 plt.title("Популярность игровых режимов")
+plt.yscale('log')
 plt.savefig(f"../task1_1/pictures/numb_of_rec_for_each_game_mode{postfix}.png")
 plt.show()
 
@@ -239,7 +240,7 @@ plt.show()
 filename = "../task1_1/data_proc/avg_proportion_of_bots_for_each_game_mode.csv"
 with open(filename, "w", newline="") as csvfile:
     writer = csv.writer(csvfile)
-    writer.writerow(["Игровой режим", "Среднее количество ботов"])
+    writer.writerow(["Игровой режим","Средняя доля ботов", "Количество записей"])
     for row in bot_results_new:
         writer.writerow(row)
 
