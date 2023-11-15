@@ -19,7 +19,7 @@ conn = sqlite3.connect("../data/Dataset.db")
 cursor = conn.cursor()
 
 # Выбор режима аналитики - для всех игроков (full) или не ботов (no_bots)
-mode = "full"
+mode = "no_bots"
 
 if mode == "full":
     postfix = ""
