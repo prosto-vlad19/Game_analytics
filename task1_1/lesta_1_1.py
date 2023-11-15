@@ -9,15 +9,17 @@ import pandas as pd
 warnings.filterwarnings("ignore")
 
 # Выбор режима аналитики - для всех игороков (full) или не ботов (no_bots)
-mode = "full"
+mode = "no_bots"
 
 if mode == "full":
     postfix = ""
     where = "True"
+    title = "Все игроки"
 
 if mode == "no_bots":
     postfix = "_no_bots"
     where = "account_db_id >= 0"
+    title = "Игроки без ботов"
 
 # Подключение к базе данных
 conn = sqlite3.connect("../data/Dataset.db")
@@ -55,7 +57,7 @@ cursor.execute(unique_modes_query)
 unique_modes_count = cursor.fetchone()[0]
 print("Количество различных игровых режимов:", unique_modes_count)
 
-# Запрос 2 NEW : подсчет количества записей для каждого игрового режима (без ботов)
+# Запрос 2 NEW : подсчет количества записей для каждого игрового режима
 count_modes_query = f"""
 SELECT cat_name, COUNT(*) as count
 FROM catalog_items
@@ -92,7 +94,7 @@ for i in range(len(modes)):
 
 plt.xlabel("Игровой режим")
 plt.ylabel("Количество записей")
-plt.title("Популярность игровых режимов")
+plt.title(f"Популярность игровых режимов.{title}")
 plt.yscale("log")
 plt.savefig(f"../task1_1/pictures/numb_of_rec_for_each_game_mode{postfix}.png")
 plt.show()
@@ -175,7 +177,7 @@ bar3 = ax.bar(
 
 ax.set_xlabel("Игровой режим")
 ax.set_ylabel("Значения")
-ax.set_title("Статистика игровых режимов")
+ax.set_title(f"Статистика игровых режимов.{title}")
 ax.set_xticks(x + bar_width)
 ax.set_xticklabels(df["Игровой режим"], rotation=45)
 ax.legend(loc="upper left", bbox_to_anchor=(1, 1))
@@ -214,8 +216,7 @@ ON arenas.team_build_type_id = catalog_items.cat_value
 JOIN arena_members
 ON arenas.arena_id = arena_members.arena_id
 AND arenas.periphery_id = arena_members.periphery_id
-WHERE {where}
-AND catalog_items.cat_type = "BATTLE_TYPE" 
+WHERE catalog_items.cat_type = "BATTLE_TYPE" 
 GROUP BY team_build_type_id
 """
 
@@ -286,7 +287,7 @@ for bar in [bar1, bar2]:
 
 plt.tight_layout()
 plt.savefig(
-    f"../task1_1/pictures/avg_proportion_of_bots_for_each_game_mode{postfix}.png"
+    f"../task1_1/pictures/avg_proportion_of_bots_for_each_game_mode.png"
 )
 plt.show()
 
@@ -303,7 +304,7 @@ print("Результаты сохранены в файл", filename)
 
 
 # Запрос 5 new: получение средней продолжительности боя
-# и количество записей для каждого игрового режима (без ботов)
+# и количество записей для каждого игрового режима
 query_avg_dur = f"""
 SELECT cat_name,AVG(duration_sec) as avg_duration, COUNT(*)
 FROM catalog_items
@@ -365,7 +366,7 @@ ax.set_yscale("log")
 # Настройка внешнего вида графика
 ax.set_xlabel("Игровой режим")
 ax.set_ylabel("Значения (логарифмическая шкала)")
-ax.set_title("Средняя продолжительность боя и количество записей в игровых режимах")
+ax.set_title(f"Средняя продолжительность боя и количество записей в игровых режимах.{title}")
 ax.set_xticks(x)
 ax.set_xticklabels(df["Игровой режим"], rotation=45)
 ax.legend()
@@ -437,7 +438,7 @@ ax.bar(x, df["Количество записей"])
 
 ax.set_xlabel("День недели")
 ax.set_ylabel("Количество записей")
-ax.set_title("Статистика записей по дням недели")
+ax.set_title(f"Статистика записей по дням недели.{title}")
 ax.set_xticks(x)
 ax.set_xticklabels(["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"])
 
@@ -507,7 +508,7 @@ plt.axhline(
 
 plt.xlabel("Карта ID")
 plt.ylabel("Количество записей")
-plt.title("Статистика записей по картам")
+plt.title(f"Статистика записей по картам.{title}")
 plt.xticks(x)
 plt.legend()
 
@@ -552,7 +553,7 @@ y = df["Количество записей"]
 plt.bar(x, y)
 plt.xlabel("Уровень боя")
 plt.ylabel("Количество записей")
-plt.title("Статистика записей по уровням боя")
+plt.title(f"Статистика записей по уровням боя.{title}")
 
 # Добавляем подписи значений
 for i, v in enumerate(y):
