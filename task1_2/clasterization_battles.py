@@ -8,7 +8,7 @@ from sklearn.preprocessing import RobustScaler
 
 warnings.filterwarnings("ignore")
 
-#Выбор режима аналитики - для всех игроков (full) или не ботов (no_bots)
+# Выбор режима аналитики - для всех игроков (full) или не ботов (no_bots)
 mode = "no_bots"
 
 if mode == "full":
@@ -41,10 +41,12 @@ WHERE typeof(account_db_id) = 'integer' AND (
 cursor.execute(query_checking_for_types_and_nulls)
 data_checking_for_types_and_nulls = cursor.fetchall()
 
-if(len(data_checking_for_types_and_nulls)) == 0:
+if (len(data_checking_for_types_and_nulls)) == 0:
     print("нет ошибок по типу данных и нет отрицательных значения в столбцах")
 else:
-    print("!!! ЕСТЬ ошибки по типу данных или по отрицательным значениям в столбцах, требуется очистка")
+    print(
+        "!!! ЕСТЬ ошибки по типу данных или по отрицательным значениям в столбцах, требуется очистка"
+    )
 
 
 query = f"""SELECT ships_killed, planes_killed, damage, team_damage, received_damage,  regen_hp, is_alive, credits, exp 
