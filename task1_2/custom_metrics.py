@@ -124,7 +124,8 @@ for cat_name, group_df in df.groupby("cat_name"):
 query_avg_damage = f"""
 SELECT cat_name, item_name,
        AVG(damage) AS avg_damage,
-       AVG(received_damage) AS avg_received_damage
+       AVG(received_damage) AS avg_received_damage,
+       COUNT(*) AS num_records  -- Count the number of records for each ship
 FROM catalog_items
 JOIN arenas ON arenas.team_build_type_id = catalog_items.cat_value 
 JOIN arena_members ON arenas.arena_id = arena_members.arena_id
@@ -136,7 +137,13 @@ GROUP BY cat_name, item_name
 cursor.execute(query_avg_damage)
 data_avg_damage = cursor.fetchall()
 
-columns_avg_damage = ["cat_name", "item_name", "avg_damage", "avg_received_damage"]
+columns_avg_damage = [
+    "cat_name",
+    "item_name",
+    "avg_damage",
+    "avg_received_damage",
+    "num_records",
+]
 df_avg_damage = pd.DataFrame(data_avg_damage, columns=columns_avg_damage)
 
 # Calculate new metric: damage / received damage
@@ -151,41 +158,63 @@ for cat_name, group_df in df_avg_damage.groupby("cat_name"):
 
     plt.figure(figsize=(10, 6))  # Adjust the figure size
 
-    # Remove infinite values
-    group_df.replace([np.inf, -np.inf], np.nan, inplace=True)
-    group_df.dropna(subset=["damage_received_ratio"], inplace=True)
-
     # Check for ships with zero received damage
     zero_received_damage_ships = group_df[group_df["avg_received_damage"] == 0]
     if not zero_received_damage_ships.empty:
         print(f"Ships with zero received damage in {cat_name} category:")
-        print(zero_received_damage_ships[["item_name", "avg_received_damage"]])
+        print(
+            zero_received_damage_ships[
+                ["item_name", "avg_received_damage", "num_records"]
+            ]
+        )
+        zero_received_damage_ships.to_csv(
+            f"../task1_2/data_proc/zero_received_damage_{cat_name}{postfix}.csv",
+            index=False,
+        )  # Save to CSV
 
-    # Top 3 smallest values
+    # Check for ships with zero damage
+    zero_damage_ships = group_df[group_df["avg_damage"] == 0]
+    if not zero_damage_ships.empty:
+        print(f"Ships with zero damage in {cat_name} category:")
+        print(zero_damage_ships[["item_name", "avg_damage", "num_records"]])
+        zero_damage_ships.to_csv(
+            f"../task1_2/data_proc/zero_damage_{cat_name}{postfix}.csv", index=False
+        )  # Save to CSV
+
+    # Remove infinite values for damage_received_ratio
+    group_df.replace([np.inf, -np.inf], np.nan, inplace=True)
+    group_df.dropna(subset=["damage_received_ratio"], inplace=True)
+
+    # Top 3 smallest values for damage_received_ratio
     top3_smallest_ratio = group_df.nsmallest(3, "damage_received_ratio")
     plt.bar(
         top3_smallest_ratio["item_name"].astype(str),
         top3_smallest_ratio["damage_received_ratio"],
-        label="Top 3 Smallest",
+        label="Top 3 Smallest (damage_received_ratio)",
         color="blue",
         alpha=0.7,
     )
 
-    # Top 3 largest values
+    # Top 3 largest values for damage_received_ratio
     top3_largest_ratio = group_df.nlargest(3, "damage_received_ratio")
     plt.bar(
         top3_largest_ratio["item_name"].astype(str),
         top3_largest_ratio["damage_received_ratio"],
-        label="Top 3 Largest",
+        label="Top 3 Largest (damage_received_ratio)",
         color="orange",
         alpha=0.7,
     )
 
-    # Mean value
+    # Mean value for damage_received_ratio
     mean_ratio_value = group_df["damage_received_ratio"].mean()
-    plt.axhline(y=mean_ratio_value, color="red", linestyle="--", label="Mean Value")
+    plt.axhline(
+        y=mean_ratio_value,
+        color="red",
+        linestyle="--",
+        label="Mean Value (damage_received_ratio)",
+    )
 
-    # Annotate each bar with its value
+    # Annotate each bar with its value for damage_received_ratio
     for i, value in enumerate(top3_smallest_ratio["damage_received_ratio"]):
         plt.text(
             i,
@@ -214,4 +243,42 @@ for cat_name, group_df in df_avg_damage.groupby("cat_name"):
     plt.xticks(rotation=45, ha="right")  # Rotate x-axis labels
     plt.legend()
     plt.tight_layout()  # Adjust layout for better spacing
+
+    # Separate histogram for ships with infinite values based on avg_damage
+    infinite_damage_ships = group_df[
+        group_df["avg_damage"].isin([np.inf, -np.inf])
+    ].copy()
+    infinite_damage_ships.reset_index(drop=True, inplace=True)
+
+    if not infinite_damage_ships.empty:
+        plt.figure(figsize=(10, 6))  # Adjust the figure size
+        plt.bar(
+            infinite_damage_ships["item_name"].astype(str),
+            infinite_damage_ships["avg_damage"],
+            label="Ships with Infinite avg_damage",
+            color="green",
+            alpha=0.7,
+        )
+
+        # Display information about the number of records for each ship
+        print(
+            f"Information about ships with infinite damage_received_ratio in {cat_name} category:"
+        )
+        print(
+            infinite_damage_ships[["item_name", "damage_received_ratio", "num_records"]]
+        )
+        infinite_damage_ships.to_csv(
+            f"infinite_damage_received_ratio_{cat_name}.csv", index=False
+        )  # Save to CSV
+
+        plt.title(
+            f"Histogram for Ships with Infinite damage_received_ratio - {cat_name}"
+        )
+        plt.xlabel("item_name")
+        plt.ylabel("avg_damage")
+        plt.xticks(rotation=45, ha="right")  # Rotate x-axis labels
+        plt.legend()
+        plt.tight_layout()  # Adjust layout for better spacing
+        plt.show()
+
     plt.show()
