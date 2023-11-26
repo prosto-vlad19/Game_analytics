@@ -13,7 +13,7 @@ conn = sqlite3.connect("../data/Dataset.db")
 cursor = conn.cursor()
 
 # Выбор режима аналитики - для всех игроков (full) или не ботов (no_bots)
-mode = "full"
+mode = "no_bots"
 
 if mode == "full":
     postfix = ""
@@ -22,6 +22,7 @@ if mode == "full":
 if mode == "no_bots":
     postfix = "_no_bots"
     where = "account_db_id >= 0"
+
 
 # 1 killed metric
 query_killed_alive = f"""
@@ -297,4 +298,86 @@ for cat_name, group_df in df_avg_damage.groupby("cat_name"):
     plt.xticks(rotation=45, ha="right")  # Rotate x-axis labels
     plt.tight_layout()  # Adjust layout for better spacing
     plt.savefig(f"../task1_2/pictures/damage_metric_{cat_name}{postfix}.png")
+    plt.show()
+
+#3 Наибольшее число побед
+query_win_percentage = f"""
+SELECT
+    cat_name,
+    item_name,
+    COUNT(*) AS total_games,
+    SUM(CASE WHEN a.winner_team_id = am.team_id THEN 1 ELSE 0 END) AS wins,
+    100.0 * SUM(CASE WHEN a.winner_team_id = am.team_id THEN 1 ELSE 0 END) / COUNT(*) AS win_percentage
+FROM
+    catalog_items AS c
+    JOIN arenas AS a ON a.team_build_type_id = c.cat_value
+    JOIN arena_members AS am ON a.arena_id = am.arena_id AND a.periphery_id = am.periphery_id
+    JOIN glossary_ships AS gs ON am.vehicle_type_id = gs.item_cd
+WHERE
+    c.cat_type = "BATTLE_TYPE"
+    AND {where}
+GROUP BY
+    cat_name, item_name;
+"""
+
+# Выполните запрос
+cursor.execute(query_win_percentage)
+data_win_percentage = cursor.fetchall()
+
+# Создайте DataFrame
+columns_win_percentage = [
+    "cat_name",
+    "item_name",
+    "total_games",
+    "wins",
+    "win_percentage",
+]
+df_win_percentage = pd.DataFrame(data_win_percentage, columns=columns_win_percentage)
+
+# Построение диаграмм
+for cat_name, group_df in df_win_percentage.groupby("cat_name"):
+    plt.figure(figsize=(12, 6))  # Размер диаграммы
+
+    # Топ 3 корабля с самым малым процентом побед
+    top3_smallest = group_df.nsmallest(3, "win_percentage")
+    bars1 = plt.bar(
+        top3_smallest["item_name"].astype(str),
+        top3_smallest["win_percentage"],
+        label="Top 3 Smallest Win Percentage",
+        color="blue",
+        alpha=0.7,
+    )
+
+    # Топ 3 корабля с самым большим процентом побед
+    top3_largest = group_df.nlargest(3, "win_percentage")
+    bars2 = plt.bar(
+        top3_largest["item_name"].astype(str),
+        top3_largest["win_percentage"],
+        label="Top 3 Largest Win Percentage",
+        color="orange",
+        alpha=0.7,
+    )
+
+    # Аннотация каждого бара с его значением
+    for bars, offset in zip([bars1, bars2], [0, len(top3_smallest)]):
+        for i, value in enumerate(bars):
+            plt.text(
+                i + offset,
+                value.get_height(),
+                f"{value.get_height():.2f}%",
+                ha="center",
+                va="bottom",
+                color="black",
+                fontsize=8,
+            )
+
+    # Легенда в верхнем левом углу
+    plt.legend(loc="upper left")
+
+    plt.title(f"Win Percentage - {cat_name}")
+    plt.xlabel("item_name")
+    plt.ylabel("win_percentage")
+    plt.xticks(rotation=45, ha="right")  # Поворот меток по оси x
+    plt.tight_layout()  # Регулировка макета для лучшего распределения
+    plt.savefig(f"../task1_2/pictures/win_percentage_{cat_name}{postfix}.png")
     plt.show()
